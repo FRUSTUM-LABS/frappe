@@ -106,7 +106,11 @@ frappe.socketio = {
 	get_host: function (port = 3000) {
 		var host = window.location.origin;	
 
-
+		if (host.includes("a4.frustum-labs.com")) {
+			console.log("🚀 ~ a4.frustum-labs.com socketio:", host)
+			return host; // No port is added for a4.frustum-labs.com either
+		}
+		
 		if (host.includes("merp.supergraph.ai")) {
 			console.log("🚀 ~ merp.supergraph.ai socketio:", host)
 			return host; // No port is added if the domain is merp.supergraph.ai
