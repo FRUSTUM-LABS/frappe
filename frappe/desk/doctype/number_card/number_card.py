@@ -104,15 +104,6 @@ def has_permission(doc, ptype, user):
 @frappe.whitelist()
 def get_result(doc, filters, to_date=None):
 	doc = frappe.parse_json(doc)
-	
-	# Create a cache key based on input parameters
-	cache_key = f"number_card:{doc.name}:{frappe.as_json(filters)}:{to_date}"
-	
-	# Try to get cached result first
-	cached_result = frappe.cache().get_value(cache_key)
-	if cached_result is not None:
-		return cached_result
-	
 	fields = []
 	sql_function_map = {
 		"Count": "count",
@@ -145,12 +136,8 @@ def get_result(doc, filters, to_date=None):
 		doc.document_type, fields=fields, filters=filters, parent_doctype=doc.parent_document_type
 	)
 	number = res[0]["result"] if res else 0
-	result = cint(number)
-	
-	# Cache the result for 5 minutes (300 seconds)
-	frappe.cache().set_value(cache_key, result, expires_in_sec=300)
-	
-	return result
+
+	return cint(number)
 
 
 @frappe.whitelist()
