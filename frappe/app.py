@@ -76,6 +76,12 @@ if frappe._tune_gc:
 @local_manager.middleware
 @Request.application
 def application(request: Request):
+	print("==== Frappe WSGI Debug ====")
+	print("Host header:", os.environ.get('HTTP_HOST'))
+	print("FRAPPE_SITE_NAME_HEADER:", os.environ.get('FRAPPE_SITE_NAME_HEADER'))
+	print("SITE_NAME:", os.environ.get('SITE_NAME'))
+	print("SITES_DIR:", os.environ.get('SITES_DIR'))
+	print("===========================")
 	response = None
 
 	try:
