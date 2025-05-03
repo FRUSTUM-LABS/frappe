@@ -73,6 +73,39 @@ if frappe._tune_gc:
 # end: module pre-loading
 
 
+# --- OpenTelemetry manual instrumentation ---
+try:
+    from opentelemetry import trace
+    from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.flask import FlaskInstrumentor
+    from opentelemetry.instrumentation.wsgi import OpenTelemetryMiddleware
+    import logging
+
+    # Set up tracer provider with service name
+    resource = Resource.create({SERVICE_NAME: "frappe-app"})
+    provider = TracerProvider(resource=resource)
+    trace.set_tracer_provider(provider)
+
+    # Set up OTLP exporter (adjust endpoint if needed)
+    otlp_exporter = OTLPSpanExporter(endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317"), insecure=True)
+    span_processor = BatchSpanProcessor(otlp_exporter)
+    provider.add_span_processor(span_processor)
+
+    # Instrument Flask
+    FlaskInstrumentor().instrument_app(frappe.app)
+
+    # Optionally instrument WSGI (wrap the main app)
+    application = OpenTelemetryMiddleware(application)
+
+    logging.getLogger("opentelemetry").setLevel(os.environ.get("OTEL_PYTHON_LOG_LEVEL", "DEBUG"))
+    print("[OpenTelemetry] Manual instrumentation enabled.")
+except Exception as e:
+    print(f"[OpenTelemetry] Manual instrumentation failed: {e}")
+
+
 @local_manager.middleware
 @Request.application
 def application(request: Request):
