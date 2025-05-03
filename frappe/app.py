@@ -94,9 +94,6 @@ try:
     span_processor = BatchSpanProcessor(otlp_exporter)
     provider.add_span_processor(span_processor)
 
-    # Instrument Flask
-    FlaskInstrumentor().instrument_app(frappe.app)
-
     # Optionally instrument WSGI (wrap the main app)
     application = OpenTelemetryMiddleware(application)
 
