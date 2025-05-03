@@ -73,7 +73,7 @@ if frappe._tune_gc:
 # end: module pre-loading
 
 
-# --- OpenTelemetry manual instrumentation ---
+# --- OpenTelemetry manual instrumentation setup ---
 try:
     from opentelemetry import trace
     from opentelemetry.sdk.resources import SERVICE_NAME, Resource
@@ -93,13 +93,10 @@ try:
     span_processor = BatchSpanProcessor(otlp_exporter)
     provider.add_span_processor(span_processor)
 
-    # Optionally instrument WSGI (wrap the main app)
-    application = OpenTelemetryMiddleware(application)
-
     logging.getLogger("opentelemetry").setLevel(os.environ.get("OTEL_PYTHON_LOG_LEVEL", "DEBUG"))
-    print("[OpenTelemetry] Manual instrumentation enabled.")
+    print("[OpenTelemetry] Tracer setup complete.")
 except Exception as e:
-    print(f"[OpenTelemetry] Manual instrumentation failed: {e}")
+    print(f"[OpenTelemetry] Tracer setup failed: {e}")
 
 
 @local_manager.middleware
@@ -481,3 +478,10 @@ def serve(
 if frappe._tune_gc:
 	gc.collect()  # clean up any garbage created so far before freeze
 	gc.freeze()
+
+# --- OpenTelemetry WSGI wrapping ---
+try:
+    application = OpenTelemetryMiddleware(application)
+    print("[OpenTelemetry] WSGI instrumentation enabled.")
+except Exception as e:
+    print(f"[OpenTelemetry] WSGI instrumentation failed: {e}")
