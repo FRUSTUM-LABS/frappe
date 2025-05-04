@@ -93,7 +93,7 @@ try:
     span_processor = BatchSpanProcessor(otlp_exporter)
     provider.add_span_processor(span_processor)
 
-    logging.getLogger("opentelemetry").setLevel(os.environ.get("OTEL_PYTHON_LOG_LEVEL", "DEBUG"))
+    logging.getLogger("opentelemetry").setLevel(logging.DEBUG)
     print("[OpenTelemetry] Tracer setup complete.")
 except Exception as e:
     print(f"[OpenTelemetry] Tracer setup failed: {e}")
