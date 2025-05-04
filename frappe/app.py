@@ -80,7 +80,7 @@ try:
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-    from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
+    from opentelemetry.instrumentation.wsgi import OpenTelemetryMiddleware
     import logging
 
     # Set up tracer provider with service name
