@@ -102,6 +102,9 @@ except Exception as e:
 @local_manager.middleware
 @Request.application
 def application(request: Request):
+	tracer = trace.get_tracer(__name__)
+	with tracer.start_as_current_span("manual-span"):
+		print("Manual span created")
 	response = None
 
 	try:
