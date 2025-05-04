@@ -78,7 +78,7 @@ try:
     from opentelemetry import trace
     from opentelemetry.sdk.resources import SERVICE_NAME, Resource
     from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.wsgi import OpenTelemetryMiddleware
     import logging
@@ -90,7 +90,7 @@ try:
 
     # Set up OTLP exporter (adjust endpoint if needed)
     otlp_exporter = OTLPSpanExporter(endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "otel-collector:4317"), insecure=True)
-    span_processor = BatchSpanProcessor(otlp_exporter)
+    span_processor = BatchSpanProcessor(ConsoleSpanExporter())
     provider.add_span_processor(span_processor)
 
     logging.getLogger("opentelemetry").setLevel(logging.DEBUG)
@@ -102,9 +102,10 @@ except Exception as e:
 @local_manager.middleware
 @Request.application
 def application(request: Request):
+	print("[Frappe] Processing request: %s" % request.path)
 	tracer = trace.get_tracer(__name__)
-	with tracer.start_as_current_span("manual-span"):
-		print("Manual span created")
+	with tracer.start_as_current_span("frappe-manual-span"):
+		print("[OpenTelemetry] Manual span created for request: %s" % request.path)
 	response = None
 
 	try:
