@@ -81,12 +81,24 @@ try:
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.wsgi import OpenTelemetryMiddleware
+    from opentelemetry.instrumentation.dbapi import DBAPIInstrumentor
+    import pymysql
+
     import logging
 
     # Set up tracer provider with service name
     resource = Resource.create({SERVICE_NAME: "frappe-app"})
     provider = TracerProvider(resource=resource)
     trace.set_tracer_provider(provider)
+    
+    
+    # ── INSTRUMENT PyMySQL ───────────────────────
+    DBAPIInstrumentor().instrument(
+        connection_module=pymysql,    # the driver
+        database_type="mysql",        # semantic convention
+        tracer_provider=provider
+    )
+    # ────────────────────────────────────────────
 
     # Set up OTLP exporter (adjust endpoint if needed)
     otlp_exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317")  # http:// = plaintext gRPC
