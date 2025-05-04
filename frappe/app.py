@@ -89,7 +89,7 @@ try:
     trace.set_tracer_provider(provider)
 
     # Set up OTLP exporter (adjust endpoint if needed)
-    otlp_exporter = OTLPSpanExporter(endpoint="otel-collector:4317", insecure=True)
+    otlp_exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317")
     span_processor = BatchSpanProcessor(OTLPSpanExporter())
     provider.add_span_processor(span_processor)
 
