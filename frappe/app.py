@@ -74,40 +74,43 @@ if frappe._tune_gc:
 
 
 # --- OpenTelemetry manual instrumentation setup ---
-try:
-    from opentelemetry import trace
-    from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor
-    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-    from opentelemetry.instrumentation.wsgi import OpenTelemetryMiddleware
-    from opentelemetry.instrumentation.pymysql import PyMySQLInstrumentor
+if os.environ.get("ENABLE_OTEL", "0").lower() in ("1", "true", "yes"):
+    try:
+        from opentelemetry import trace
+        from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+        from opentelemetry.sdk.trace import TracerProvider
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor
+        from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+        from opentelemetry.instrumentation.wsgi import OpenTelemetryMiddleware
+        from opentelemetry.instrumentation.pymysql import PyMySQLInstrumentor
 
-    import pymysql
+        import pymysql
 
-    import logging
+        import logging
 
-    # Set up tracer provider with service name
-    resource = Resource.create({SERVICE_NAME: "frappe-app"})
-    provider = TracerProvider(resource=resource)
-    trace.set_tracer_provider(provider)
-    
-    
-    # ── INSTRUMENT PyMySQL ───────────────────────
-    # instrument PyMySQL directly
-    PyMySQLInstrumentor().instrument(tracer_provider=provider)
-    # ────────────────────────────────────────────
+        # Set up tracer provider with service name
+        resource = Resource.create({SERVICE_NAME: "frappe-app"})
+        provider = TracerProvider(resource=resource)
+        trace.set_tracer_provider(provider)
+        
+        
+        # ── INSTRUMENT PyMySQL ───────────────────────
+        # instrument PyMySQL directly
+        PyMySQLInstrumentor().instrument(tracer_provider=provider)
+        # ────────────────────────────────────────────
 
-    # Set up OTLP exporter (adjust endpoint if needed)
-    otlp_exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317")  # http:// = plaintext gRPC
+        # Set up OTLP exporter (adjust endpoint if needed)
+        otlp_exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317")  # http:// = plaintext gRPC
 
-    span_processor = BatchSpanProcessor(otlp_exporter)
-    provider.add_span_processor(span_processor)
+        span_processor = BatchSpanProcessor(otlp_exporter)
+        provider.add_span_processor(span_processor)
 
-    logging.getLogger("opentelemetry").setLevel(logging.DEBUG)
-    print("[OpenTelemetry] Tracer setup complete.")
-except Exception as e:
-    print(f"[OpenTelemetry] Tracer setup failed: {e}")
+        logging.getLogger("opentelemetry").setLevel(logging.DEBUG)
+        print("[OpenTelemetry] Tracer setup complete.")
+    except Exception as e:
+        print(f"[OpenTelemetry] Tracer setup failed: {e}")
+else:
+    print("[OpenTelemetry] Instrumentation disabled via ENABLE_OTEL environment variable.")
 
 
 @local_manager.middleware
@@ -495,8 +498,11 @@ if frappe._tune_gc:
 	gc.freeze()
 
 # --- OpenTelemetry WSGI wrapping ---
-try:
-    application = OpenTelemetryMiddleware(application)
-    print("[OpenTelemetry] WSGI instrumentation enabled.")
-except Exception as e:
-    print(f"[OpenTelemetry] WSGI instrumentation failed: {e}")
+if os.environ.get("ENABLE_OTEL", "0").lower() in ("1", "true", "yes"):
+    try:
+        application = OpenTelemetryMiddleware(application)
+        print("[OpenTelemetry] WSGI instrumentation enabled.")
+    except Exception as e:
+        print(f"[OpenTelemetry] WSGI instrumentation failed: {e}")
+else:
+    print("[OpenTelemetry] WSGI instrumentation disabled via ENABLE_OTEL environment variable.")
