@@ -81,7 +81,7 @@ try:
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.wsgi import OpenTelemetryMiddleware
-    from opentelemetry.instrumentation.dbapi import DBAPIInstrumentor
+    from opentelemetry.instrumentation.pymysql import PymysqlInstrumentor
     import pymysql
 
     import logging
@@ -93,11 +93,8 @@ try:
     
     
     # ── INSTRUMENT PyMySQL ───────────────────────
-    DBAPIInstrumentor().instrument(
-        connection_module=pymysql,    # the driver
-        database_type="mysql",        # semantic convention
-        tracer_provider=provider
-    )
+    # instrument PyMySQL directly
+    PymysqlInstrumentor().instrument(tracer_provider=provider)
     # ────────────────────────────────────────────
 
     # Set up OTLP exporter (adjust endpoint if needed)
