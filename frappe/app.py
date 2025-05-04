@@ -116,10 +116,6 @@ else:
 @local_manager.middleware
 @Request.application
 def application(request: Request):
-	print("[Frappe] Processing request: %s" % request.path)
-	tracer = trace.get_tracer(__name__)
-	with tracer.start_as_current_span("frappe-manual-span"):
-		print("[OpenTelemetry] Manual span created for request: %s" % request.path)
 	response = None
 
 	try:
