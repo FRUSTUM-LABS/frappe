@@ -78,7 +78,7 @@ try:
     from opentelemetry import trace
     from opentelemetry.sdk.resources import SERVICE_NAME, Resource
     from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.wsgi import OpenTelemetryMiddleware
     import logging
@@ -89,8 +89,8 @@ try:
     trace.set_tracer_provider(provider)
 
     # Set up OTLP exporter (adjust endpoint if needed)
-    otlp_exporter = OTLPSpanExporter(endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "otel-collector:4317"), insecure=True)
-    span_processor = BatchSpanProcessor(ConsoleSpanExporter())
+    otlp_exporter = OTLPSpanExporter(endpoint="otel-collector:4317", insecure=True)
+    span_processor = BatchSpanProcessor(OTLPSpanExporter())
     provider.add_span_processor(span_processor)
 
     logging.getLogger("opentelemetry").setLevel(logging.DEBUG)
